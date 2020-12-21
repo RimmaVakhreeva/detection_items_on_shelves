@@ -1,9 +1,11 @@
 import os
+import json
+
 import numpy as np
 import cv2
 
 root_dir = '/Users/rimmavahreeva/Desktop/detection_pet_project/SKU110K/test'
-image_name = 'test_0.jpg'
+image_name = 'test_22.jpg'
 image_path = os.path.join(root_dir, image_name)
 #image = cv2.imread(image_path)[..., ::-1].copy()
 image = cv2.imread(image_path)
@@ -24,7 +26,6 @@ def draw_img(image):
                           isClosed=True,
                           color=(255, 0, 0),
                           thickness=6)
-
 
     if len(points) > 1:
         cv2.polylines(image, pts=np.array([points], dtype=np.int32),
@@ -52,7 +53,15 @@ while True:
         break
     elif key == 13:
         polygons.append(points)
-        print(polygons)
         points = []
+
+output_data = {image_name: []}
+for idx, polygon in enumerate(polygons):
+    output_data[image_name].append([
+        f'shelve_{idx}', np.array(polygon).tolist()
+    ])
+
+with open('/Users/rimmavahreeva/Desktop/detection_pet_project/test_100.json', 'w') as f:
+    json.dump(output_data, f)
 
 cv2.destroyAllWindows() # destroys all the windows we created
