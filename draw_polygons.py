@@ -5,7 +5,7 @@ import numpy as np
 import cv2
 
 root_dir = '/Users/rimmavahreeva/Desktop/detection_pet_project/SKU110K/test'
-image_name = 'test_22.jpg'
+image_name = 'test_7.jpg'
 image_path = os.path.join(root_dir, image_name)
 #image = cv2.imread(image_path)[..., ::-1].copy()
 image = cv2.imread(image_path)
@@ -61,7 +61,7 @@ for idx, polygon in enumerate(polygons):
         f'shelve_{idx}', np.array(polygon).tolist()
     ])
 
-with open('/Users/rimmavahreeva/Desktop/detection_pet_project/test_100.json', 'w') as f:
+with open('/Users/rimmavahreeva/Desktop/detection_pet_project/test_7.json', 'w') as f:
     json.dump(output_data, f)
 
 cv2.destroyAllWindows() # destroys all the windows we created
