@@ -1741,7 +1741,7 @@ class GFLHead(nn.Module):
         return result_list
 
 class Detector(nn.Module):
-    def __init__(self):
+    def __init__(self, weights_path):
         super().__init__()
         self.backbone = ResNet(
             depth=18,
@@ -1768,6 +1768,10 @@ class Detector(nn.Module):
             score_thr=0.05,
             nms=dict(type='nms', iou_threshold=0.6),
             max_per_img=2000)
+
+        cp = torch.load(str(weights_path), map_location='cpu')['state_dict']
+        self.load_state_dict(cp, strict=True)
+        self.eval()
 
     def prepare_images(self, img_path):
         image = cv2.imread(str(img_path))
@@ -1797,7 +1801,6 @@ class Detector(nn.Module):
         return image, pad, down_height / img_h
 
     def normalization_images_for_detector(self, img_path):
-
         mean = [123.675, 116.28, 103.53]
         std = [58.395, 57.12, 57.375]
 
@@ -1820,12 +1823,7 @@ class Detector(nn.Module):
         ]
         return self.bbox_head.get_bboxes(cls_score, bbox_pred, image_metas, cfg=self.cfg_kwargs)
 
-    def model(self, images_path):
-        cp = torch.load('/Users/rimmavahreeva/Desktop/detection_pet_project/epoch_12.pth',
-                        map_location='cpu')['state_dict']
-        self.load_state_dict(cp, strict=True)
-        detector = self.eval()
-
+    def get_bboxes(self, images_path):
         image2detector = self.normalization_images_for_detector(images_path)
         with torch.no_grad():
             result = self.forward(image2detector)

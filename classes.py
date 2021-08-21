@@ -1,3 +1,5 @@
+import hashlib
+
 from shapely.geometry import Polygon, box
 
 from dataclasses import dataclass
@@ -9,6 +11,22 @@ import random
 
 import cv2
 import numpy as np
+
+
+def _generate_color():
+    r = int(random.random() * 256)
+    g = int(random.random() * 256)
+    b = int(random.random() * 256)
+    return r, g, b
+
+
+def generate_color_by_text(text):
+    hash_code = int(hashlib.sha256(text.encode('utf-8')).hexdigest(), 16)
+    r = int((hash_code / 255) % 255)
+    g = int((hash_code / 65025) % 255)
+    b = int((hash_code / 16581375) % 255)
+    return b, g, r, 100
+
 
 @dataclass
 class Point:
@@ -33,6 +51,13 @@ class Bbox:
     @property
     def area(self):
         return self.width * self.height
+
+    def clip(self, max_w, max_h):
+        self.x1 = np.clip(self.x1, 0, max_w)
+        self.y1 = np.clip(self.y1, 0, max_h)
+        self.x2 = np.clip(self.x2, 0, max_w)
+        self.y2 = np.clip(self.y2, 0, max_h)
+        return self.x1, self.y1, self.x2, self.y2
 
     def intersection_area(self, polygon: List[Point]):
         bbox_coords = box(self.x1, self.y1, self.x2, self.y2)
@@ -65,20 +90,23 @@ class Hole:
         y2 = np.max(np_holes[:, 1])
         return Bbox(x1, y1, x2, y2)
 
-def _generate_color():
-    r = int(random.random() * 256)
-    g = int(random.random() * 256)
-    b = int(random.random() * 256)
-    return r, g, b
+@dataclass
+class Item:
+    bbox: Bbox
+    label: Optional[int] = None
+    embedding: Optional[np.ndarray] = None
+    distance_to_mean_embedding: Optional[float] = None
 
 @dataclass
 class Shelve:
     name: str
     points: List[Point]
     mean_width: Optional[int] = None
-    max_width_hole: Optional[int] = None
-    bboxes: List[Bbox] = field(default_factory=lambda: sortedlist([], key=lambda bbox: bbox.x1))
+    items: List[Item] = field(default_factory=lambda: sortedlist([], key=lambda i: i.bbox.x1))
+    mean_embedding: Optional[np.ndarray] = None
     color: Tuple[int, int, int] = field(default_factory=_generate_color)
+
+    max_width_hole: Optional[int] = None
     count_holes: List[int] = field(default_factory=list)
     holes: List[Hole] = field(default_factory=list)
     width_holes: List[int] = field(default_factory=list)
@@ -92,9 +120,8 @@ class Shelve:
         y2 = np.max(np_points[:, 1])
         return Bbox(x1, y1, x2, y2)
 
-    def render_img(self, image, alpha=0.4):
+    def render_img(self, image, alpha=0.4, transparency=True):
         image = image.copy()
-        color = _generate_color()
         cv2.polylines(image,
                       pts=np.array([[[point.x, point.y] for point in self.points]], dtype=np.int32),
                       isClosed=True,
@@ -104,21 +131,23 @@ class Shelve:
         overlay = image.copy()
         output = image.copy()
 
-        for bbox in self.bboxes:
+        for item in self.items:
+            bbox = item.bbox
             cv2.rectangle(overlay,
                           (bbox.x1, bbox.y1),
                           (bbox.x1 + bbox.width, bbox.y1 + bbox.height),
                           self.color, -1)
-            cv2.addWeighted(overlay, alpha, image, 1 - alpha, 0, output)
+            if transparency:
+                cv2.addWeighted(overlay, alpha, image, 1 - alpha, 0, output)
         return output
 
     def mean_width_bbox(self):
         width_list = []
         mean_width = 0
-        for bbox in self.bboxes:
-            width_list.append(bbox.width)
-        if len(self.bboxes) != 0:
-            mean_width = sum(width_list) / len(self.bboxes)
+        for item in self.items:
+            width_list.append(item.bbox.width)
+        if len(self.items) != 0:
+            mean_width = sum(width_list) / len(self.items)
         return mean_width
 
     def mean_std_holes(self, width_holes, threshold=10):

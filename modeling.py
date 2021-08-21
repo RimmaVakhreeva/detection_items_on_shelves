@@ -667,12 +667,12 @@ def resnet152_ibn_a(last_stride, pretrained=False, **kwargs):
     return model
 
 
-class GetEmbeddings(nn.Module):
+class GoodsReid(nn.Module):
     in_planes = 2048
 
     def __init__(self, num_classes, last_stride, neck,
                  neck_feat, model_name, weights_path):
-        super(GetEmbeddings, self).__init__()
+        super(GoodsReid, self).__init__()
         if model_name == 'resnet18':
             self.in_planes = 512
             self.base = ResNet(last_stride=last_stride,
