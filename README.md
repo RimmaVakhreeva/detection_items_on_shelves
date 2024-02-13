@@ -2,22 +2,20 @@
 
 **holes_on_shelves - поиск пустот на полках с товарами**
 
-Для детекции товаров на полках используется одностадийный детектор GFL. В качестве бэкбона используется ResNet18. Модель обучалась на данных SKU110K, которые были подготовлены под формат COCO json.
+For detecting goods on shelves, a single-stage GFL detector is used. ResNet18 is used as the backbone. The model was trained on SKU110K data, which was prepared in the COCO json format.
 
-Для поиска пустот были заранее выделены полки в виде полигона. Для того чтобы, соотнести каждый bounding box товара к конкретной полке была вычислена площадь пересечения bounding box c полигоном полки. Если площадь пересечения больше заданного порога, то bounding box принадлежит полке.
+To search for gaps, shelves were pre-selected as polygons. To match each product's bounding box to a specific shelf, the intersection area of the bounding box with the shelf polygon was calculated. If the intersection area is greater than a set threshold, then the bounding box belongs to the shelf.
 
-Все bounding boxes были отсортированы. С помощью координат bounding boxes были сохранены все пустоты между товарами. Чтобы найти нужные пустоты, были вычислены средние значения пустот по полкам и сдандартные отклонения относительно средних значений пустот. Если ширина пустоты между bounding boxes не проходит по условию, то там нет товаров.
+All bounding boxes were sorted. Using the coordinates of the bounding boxes, all gaps between goods were saved. To find the required gaps, the average values of the gaps by shelves and standard deviations relative to the average values of the gaps were calculated. If the width of the gap between bounding boxes does not meet the condition, then there are no goods there.
 
 ![](result_holes_on_shelve.jpg)
 
 **similar_products_groups - поиск группы похожих товаров**
 
-Для поиска группы похожих товаров была обучена модель reid-strong-baseline (https://github.com/michuanhaohao/reid-strong-baseline) на датасете Aliproducts. С помощью этой обученной модели были получены embedding'и товаров. Далее к этим embedding'ам был применен метод кластеризации DBSCAN. Таким образом были найдены похожие товары.
-
+To search for groups of similar goods, the reid-strong-baseline model (https://github.com/michuanhaohao/reid-strong-baseline) was trained on the AliProducts dataset. Using this trained model, embeddings of the goods were obtained. The DBSCAN clustering method was then applied to these embeddings. As a result, similar goods were identified.
 ![](result_similar_products_group.jpg)
 
 **wrong_position_product - поиск товаров на полках, которые расположены не на своем месте**
 
-Для решения данной задачи была обучена модель reid-strong-baseline (https://github.com/michuanhaohao/reid-strong-baseline) на датасете Aliproducts. С помощью этой обученной модели были получены embedding'и кропов товаров. Далее к этим embedding'ам к каждой выделенной полке был применен метод кластеризации DBSCAN. Таким образом были найдены товары на полках, которые расположены не на своем месте.
-
+To solve this problem, the reid-strong-baseline model (https://github.com/michuanhaohao/reid-strong-baseline) was trained on the AliProducts dataset. Using this trained model, embeddings of the product crops were obtained. The DBSCAN clustering method was then applied to these embeddings for each designated shelf. As a result, products on the shelves that were not in their correct places were identified.
 ![](result_wrong_position_product.jpg)
