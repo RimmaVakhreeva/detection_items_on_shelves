@@ -1,6 +1,6 @@
 ### detection_items_on_shelves
 
-**holes_on_shelves - поиск пустот на полках с товарами**
+**holes_on_shelves - searching for gaps on shelves with goods**
 
 For detecting goods on shelves, a single-stage GFL detector is used. ResNet18 is used as the backbone. The model was trained on SKU110K data, which was prepared in the COCO json format.
 
@@ -10,12 +10,12 @@ All bounding boxes were sorted. Using the coordinates of the bounding boxes, all
 
 ![](result_holes_on_shelve.jpg)
 
-**similar_products_groups - поиск группы похожих товаров**
+**similar_products_groups - Searching for similar goods by groups**
 
 To search for groups of similar goods, the reid-strong-baseline model (https://github.com/michuanhaohao/reid-strong-baseline) was trained on the AliProducts dataset. Using this trained model, embeddings of the goods were obtained. The DBSCAN clustering method was then applied to these embeddings. As a result, similar goods were identified.
 ![](result_similar_products_group.jpg)
 
-**wrong_position_product - поиск товаров на полках, которые расположены не на своем месте**
+**wrong_position_product - searching for goods on shelves that are in the wrong place**
 
 To solve this problem, the reid-strong-baseline model (https://github.com/michuanhaohao/reid-strong-baseline) was trained on the AliProducts dataset. Using this trained model, embeddings of the product crops were obtained. The DBSCAN clustering method was then applied to these embeddings for each designated shelf. As a result, products on the shelves that were not in their correct places were identified.
 ![](result_wrong_position_product.jpg)
